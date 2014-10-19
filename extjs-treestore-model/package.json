@@ -1,0 +1,11 @@
+{
+	"name": "extjs-treestore-model",
+	"version": "0.0.1",
+	"description": "It will transform mongoose schema into extjs treemodel",
+	"keywords": ["extjs", "transform", "tree", "store"],
+	"author": {
+		"name": "Gian Febrian",
+		"email": "me@gianfebrian.com",
+		"url": "http://gianfebrian.com"
+	}
+}
