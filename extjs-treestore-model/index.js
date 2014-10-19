@@ -1,11 +1,12 @@
 var ExtJSTreeStoreModel = function (docs, config) {
     var self = this;
-    self.docs = 'string' === typeof docs ? eval(docs) : docs;
-    self.iconCls = 'undefined' == typeof config.iconCls ? 'grid' : config.iconCls;
-    self.expandField = 'undefined' == typeof config.expandField ? 'all' : config.expandedField;
-    self.root = 'undefined' == typeof config.root ? 'none' : config.root;
-    self.rootText = 'undefined' == config.rootText ? 'none' : config.rootText;
-    self.text = 'undefined' == typeof config.text ? 'none' : config.text;
+    config = ('undefined' === typeof config) ? {} : config;
+    self.docs = ('string' === typeof docs) ? eval(docs) : docs;
+    self.iconCls = ('undefined' === typeof config.iconCls) ? 'grid' : config.iconCls;
+    self.expandField = ('undefined' === typeof config.expandField) ? 'all' : config.expandedField;
+    self.root = ('undefined' === typeof config.root) ? 'none' : config.root;
+    self.rootText = ('undefined' === config.rootText) ? 'none' : config.rootText;
+    self.text = ('undefined' === typeof config.text) ? 'none' : config.text;
 }
 
 ExtJSTreeStoreModel.prototype.result = [];
@@ -15,19 +16,18 @@ ExtJSTreeStoreModel.prototype.toTreeStoreModel = function () {
         obj = self.docs;
     self.recursive(obj);
     if (self.root == 'none') {
-        var noRoot = {}, children = [];
-        children.push(self.result);
+        var noRoot = {};
 
         noRoot.text = '.';
-        noRoot.children = children;
+        noRoot.children = self.result;
         self.result = noRoot;
     }
-    if (self.rootText != 'none') {
-        var root = {root: {}}, children = [];
-        children.push(self.result);
-
+    if (self.root != 'none') {
+        var root = {
+            root: {}
+        };
         root.root.text = self.rootText == 'none' ? '.' : self.rootText;
-        root.root.children = children;
+        root.root.children = self.result;
         self.result = root;
     }
     return self.result;
@@ -43,14 +43,18 @@ ExtJSTreeStoreModel.prototype.leaf = function (obj) {
                     return obj;
                 }
             } else {
-                leaf = false && leaf;
+                if (typeof obj[prop] === 'undefined') {
+                    leaf = false && leaf;
+                }
                 self.leaf(obj[prop]);
             }
         } else {
             leaf = true && leaf;
         }
     }
-    if (leaf) obj.leaf = true;
+    if (leaf && !Array.isArray(obj)) {
+        obj.leaf = true;
+    }
     return obj;
 };
 
@@ -65,9 +69,13 @@ ExtJSTreeStoreModel.prototype.recursive = function (obj, childs) {
                     var temp = self.leaf(obj[prop]);
                     delete obj[prop];
                     obj['children'] = temp;
+                    if (obj.hasOwnProperty('children') && obj.hasOwnProperty('leaf')) {
+                        delete obj.leaf;
+                    }
                     self.recursive(obj['children'], ((typeof childs == 'undefined') ? false : true));
                 }
             } else {
+                self.leaf(obj[prop]);
                 obj[prop].iconCls = self.iconCls;
                 if (self.text != 'none') {
                     if (obj[prop].hasOwnProperty(self.text)) {
